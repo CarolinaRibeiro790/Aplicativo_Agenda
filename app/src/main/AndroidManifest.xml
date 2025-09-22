@@ -12,13 +12,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppAgenda">
         <activity
-            android:name=".MainActivity"
+            android:name= ".ui.telas.LoginActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.AppAgenda">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
