@@ -64,6 +64,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("io.github.boguszpawlowski.composecalendar:composecalendar:1.1.1")
     implementation("io.github.boguszpawlowski.composecalendar:kotlinx-datetime:1.1.1")
-
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
 }

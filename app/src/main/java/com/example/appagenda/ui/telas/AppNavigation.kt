@@ -6,7 +6,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.appagenda.ui.telas.componentes.LoginScreen
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Home
@@ -19,53 +18,57 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.appagenda.ui.telas.componentes.PerfilView
 
 object Routes {
     const val LOGIN = "login"
     const val HOME = "home"
-
     const val AGENDA = "agenda"
-
     const val PERFIL = "perfil"
+
+    const val NOTIFICACAO = "notificacao"
 }
 
 sealed class TabScreen(val route: String, val title: String, val icon: ImageVector){
     object Home: TabScreen(Routes.HOME, "Home", Icons.Outlined.Home)
     object Agenda: TabScreen(Routes.AGENDA, "Agenda", Icons.Outlined.DateRange)
-    object Perfil: TabScreen(Routes.AGENDA, "Perfil", Icons.Outlined.Person)
+    object Perfil: TabScreen(Routes.PERFIL, "Perfil", Icons.Outlined.Person)
 }
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Routes.LOGIN){
-
-        composable(Routes.LOGIN){
-            LoginScreen (
+    NavHost(navController = navController, startDestination = Routes.LOGIN) {
+        composable(Routes.LOGIN) {
+            LoginScreen(
                 onLoginSucess = {
-                    navController.navigate("main_app"){
-                        popUpTo(Routes.LOGIN) {inclusive = true}
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 }
             )
         }
-        composable("main_app"){
-           MainScreenWithTabs()
+        composable(Routes.HOME) {
+            MainScreenWithTabs(rootNavController = navController)
+        }
+
+        composable(Routes.NOTIFICACAO) {
+            NotificacaoView()
         }
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreenWithTabs(modifier: Modifier = Modifier) {
-    val navController = rememberNavController()
+fun MainScreenWithTabs(rootNavController: NavController) {
+    val tabsNavController = rememberNavController()
 
-    val tabScreen = listOf(
+    val tabScreens = listOf(
         TabScreen.Home,
         TabScreen.Agenda,
         TabScreen.Perfil
@@ -74,43 +77,35 @@ fun MainScreenWithTabs(modifier: Modifier = Modifier) {
     Scaffold(
         bottomBar = {
             NavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val navBackStackEntry by tabsNavController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
-                tabScreen.forEach {screen ->
+                tabScreens.forEach { screen ->
                     NavigationBarItem(
-                        icon = {
-                            Icon(
-                                imageVector = screen.icon,
-                                contentDescription = screen.title
-                            )
-                        },
-                        label = {Text(screen.title)},
-                        selected = currentDestination?.hierarchy?.any {
-                            it.route == screen.route
-                        } == true,
+                        icon = { Icon(imageVector = screen.icon, contentDescription = screen.title) },
+                        label = { Text(screen.title) },
+                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                         onClick = {
-                            navController.navigate(screen.route){
-                                popUpTo(navController.graph.findStartDestination()){
-                                    saveState = true
-                                }
+                            tabsNavController.navigate(screen.route) {
+                                popUpTo(tabsNavController.graph.findStartDestination().id) { saveState = true }
                                 launchSingleTop = true
                                 restoreState = true
                             }
                         }
                     )
-
                 }
             }
         }
-    ) {  innerPadding ->
+    ) { innerPadding ->
         NavHost(
-            navController = navController,
+            navController = tabsNavController,
             startDestination = Routes.HOME,
             modifier = Modifier.padding(innerPadding)
-        ){
-            composable(Routes.HOME) { HomeView()  }
-            composable(Routes.AGENDA) {AgendaView()  }
+        ) {
+            composable(Routes.HOME) {
+                HomeView(onNotificationsClick = { rootNavController.navigate(Routes.NOTIFICACAO) })
+            }
+            composable(Routes.AGENDA) { AgendaView() }
             composable(Routes.PERFIL) { PerfilView() }
         }
     }
