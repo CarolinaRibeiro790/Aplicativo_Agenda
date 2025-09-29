@@ -26,15 +26,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.example.appagenda.R
+import com.example.appagenda.data.dao.verificarLogin
 import com.example.appagenda.ui.theme.AppAgendaTheme
 import com.example.appagenda.ui.theme.BlueColor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.google.gson.Gson
 
 @Composable
 fun LoginScreen(
     onLoginSucess: () -> Unit = {},
     onForgotPassword: () -> Unit = {}
 ){
-
+    var isLoading by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var email by remember {mutableStateOf("")}
     var senha by remember {mutableStateOf("")}
@@ -136,8 +142,53 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .padding(bottom = 24.dp)
                 )
-
                 Button(
+                    onClick = {
+                        if (email.isNotEmpty() && senha.isNotEmpty()) {
+                            isLoading = true
+
+                            CoroutineScope(Dispatchers.Main).launch {
+                                val loginValido = verificarLogin(email, senha)
+
+                                if (loginValido) {
+                                    Toast.makeText(context, "Login bem-sucedido!", Toast.LENGTH_SHORT).show()
+                                    onLoginSucess()
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Email ou senha incorretos",
+                                        Toast.LENGTH_SHORT
+                                    ).apply {
+                                        setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 100)
+                                    }.show()
+                                }
+
+                                isLoading = false
+                            }
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Preencha todos os campos",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    enabled = !isLoading,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = BlueColor)
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(text = "ACESSAR", color = Color.White)
+                    }
+                }
+
+/*                Button(
                     onClick = {
                         if (email == "teste@gmail.com" && senha == "1234") {
                             Toast.makeText(context, "Login bem-sucedido!", Toast.LENGTH_SHORT).show()
@@ -156,7 +207,7 @@ fun LoginScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = BlueColor)
                 ) {
                     Text(text = "ACESSAR", color = Color.White)
-                }
+                }*/
 
                 TextButton(
                     onClick = { onForgotPassword() },
