@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.example.appagenda.R
 import com.example.appagenda.data.dao.verificarLogin
+import com.example.appagenda.data.repository.AuthRepository
 import com.example.appagenda.ui.theme.AppAgendaTheme
 import com.example.appagenda.ui.theme.BlueColor
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +45,8 @@ fun LoginScreen(
     val context = LocalContext.current
     var email by remember {mutableStateOf("")}
     var senha by remember {mutableStateOf("")}
+
+    val authRepository = remember { AuthRepository() }
 
     Box(
         modifier = Modifier
@@ -146,17 +149,27 @@ fun LoginScreen(
                     onClick = {
                         if (email.isNotEmpty() && senha.isNotEmpty()) {
                             isLoading = true
+                            println("DEBUG LOGIN - Email: $email")
 
                             CoroutineScope(Dispatchers.Main).launch {
-                                val loginValido = verificarLogin(email, senha)
+                                // Faz a chamada à API no contexto IO
+                                val result = withContext(Dispatchers.IO) {
+                                    authRepository.login(email, senha)
+                                }
 
-                                if (loginValido) {
-                                    Toast.makeText(context, "Login bem-sucedido!", Toast.LENGTH_SHORT).show()
-                                    onLoginSucess()
-                                } else {
+                                result.onSuccess { loginResponse ->
+                                    println("DEBUG LOGIN - Sucesso: ${loginResponse.safeUser?.name}")
                                     Toast.makeText(
                                         context,
-                                        "Email ou senha incorretos",
+                                        "Bem-vindo(a), ${loginResponse.safeUser?.name ?: loginResponse.safeUser?.email}!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    onLoginSucess()
+                                }.onFailure { exception ->
+                                    println("DEBUG LOGIN - Erro: ${exception.message}")
+                                    Toast.makeText(
+                                        context,
+                                        exception.message ?: "Email ou senha incorretos",
                                         Toast.LENGTH_SHORT
                                     ).apply {
                                         setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 100)

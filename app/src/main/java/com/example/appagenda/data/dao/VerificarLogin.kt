@@ -20,15 +20,23 @@ suspend fun verificarLogin(email: String, senha: String): Boolean {
             val body = json.toString().toRequestBody(mediaType)
 
             val request = Request.Builder()
-                .url("http://10.0.2.2:3000/auth/login") // Ajuste a URL conforme necessário
+                .url("http://192.168.3.9:8000/api/auth/login")
                 .post(body)
                 .addHeader("Content-Type", "application/json")
                 .build()
 
             val response = client.newCall(request).execute()
 
-            // Se a resposta for 200, login válido
-            response.isSuccessful
+            println("Código de resposta da API: ${response.code}")
+
+            // Verifica se a resposta foi bem-sucedida
+            if (response.isSuccessful) {
+                true
+            } else {
+                // Se o servidor respondeu com um erro (como 500), log o corpo da resposta
+                println("Corpo do erro: ${response.body?.string()}")
+                false
+            }
 
         } catch (e: Exception) {
             false // Se der erro, retorna false

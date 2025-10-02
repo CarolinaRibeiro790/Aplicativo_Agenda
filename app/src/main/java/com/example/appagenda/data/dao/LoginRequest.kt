@@ -1,21 +1,35 @@
 package com.example.appagenda.data.dao
 
+import com.google.gson.annotations.SerializedName
+
 data class LoginRequest(
+    @SerializedName("email")
     val email: String,
+
+    @SerializedName("password")
     val password: String
 )
 
 data class LoginResponse(
-    val authToken: String,
-    val safeUser: SafeUser
+    @SerializedName("authToken")
+    val authToken: String?,
+
+    @SerializedName("safeUser")
+    val safeUser: SafeUser?
 )
 
 data class SafeUser(
-    val email: String,
+    @SerializedName("email")
+    val email: String?,
+
+    @SerializedName("name")
     val name: String? = null
 )
 
 data class ErrorResponse(
+    @SerializedName("success")
     val success: Boolean,
+
+    @SerializedName("message")
     val message: String
 )
