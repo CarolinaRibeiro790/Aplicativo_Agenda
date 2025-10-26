@@ -16,7 +16,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         >
         <activity
-            android:name= ".ui.telas.LoginActivity"
+            android:name= ".view.telas.LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.AppAgenda">
             <intent-filter>
