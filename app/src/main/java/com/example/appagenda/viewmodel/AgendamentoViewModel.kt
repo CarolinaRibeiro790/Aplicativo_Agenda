@@ -6,6 +6,7 @@ import com.example.appagenda.model.Agendamento
 import com.example.appagenda.model.Horario
 import com.example.appagenda.model.Servico
 import com.example.appagenda.repository.AgendamentoRepository
+import com.example.appagenda.repository.HorarioRepository
 import com.example.appagenda.repository.ServicoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +36,7 @@ data class AgendamentoUiState(
 class AgendamentoViewModel(
     private val agendamentoRepository: AgendamentoRepository = AgendamentoRepository(),
     private val servicoRepository: ServicoRepository = ServicoRepository(),
-    //private val horarioRepository: HorarioRepository = HorarioRepository()
+    private val horarioRepository: HorarioRepository = HorarioRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AgendamentoUiState())
@@ -50,9 +51,11 @@ class AgendamentoViewModel(
         _uiState.value = _uiState.value.copy(isLoading = true)
         try {
             val servicos = servicoRepository.getServicos()
+            val horarios = horarioRepository.getHorarios()
             val agendamentos = agendamentoRepository.getAgendamentos().getOrNull() ?: emptyList()
             _uiState.value = _uiState.value.copy(
                 servicos = servicos,
+                horarios = horarios,
                 agendamentos = agendamentos.filter { it.status == 1 },
                 isLoading = false
             )
@@ -63,13 +66,14 @@ class AgendamentoViewModel(
             )
         }
     }
+
     // Recarregar apenas agendamentos
     fun recarregarAgendamentos() = viewModelScope.launch {
         try {
             val agendamentos = agendamentoRepository.getAgendamentos().getOrNull() ?: emptyList()
             atualizarUi {
                 it.copy(
-                    agendamentos = agendamentos.filter { it.status == 1}
+                    agendamentos = agendamentos.filter { it.status == 1 }
                 )
             }
         } catch (e: Exception) {
@@ -106,7 +110,13 @@ class AgendamentoViewModel(
     }
 
     fun esconderDialog() =
-        atualizarUi { it.copy(mostrarDialog = false, servicoSelecionado = null, horarioSelecionado = null) }
+        atualizarUi {
+            it.copy(
+                mostrarDialog = false,
+                servicoSelecionado = null,
+                horarioSelecionado = null
+            )
+        }
 
     // Cancelar agendamento específico
     fun cancelarAgendamento(agendamentoId: Int) = viewModelScope.launch {
@@ -167,8 +177,10 @@ class AgendamentoViewModel(
     private fun atualizarUi(block: (AgendamentoUiState) -> AgendamentoUiState) {
         _uiState.value = block(_uiState.value)
     }
-    fun selecionarHorario(horario: java.time.LocalTime?) =
-        atualizarUi { it.copy(horarioSelecionado = horario as LocalTime?) }
+
+    fun selecionarHorario(horario: LocalTime?) =
+        atualizarUi { it.copy(horarioSelecionado = horario) }
+
     fun limparMensagens() = atualizarUi { it.copy(error = null, sucessoMensagem = null) }
     private fun mostrarErro(msg: String) = atualizarUi { it.copy(error = msg) }
 

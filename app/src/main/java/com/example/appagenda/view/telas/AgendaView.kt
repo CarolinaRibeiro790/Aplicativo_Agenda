@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appagenda.view.theme.BlueColor
 import com.example.appagenda.viewmodel.AgendamentoViewModel
+import kotlinx.datetime.LocalTime
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -287,7 +288,7 @@ fun AgendarDialog(
                                     onClick = {
                                         // Segurança para evitar crash
                                         try {
-                                            viewModel.selecionarHorario(horario)
+                                            viewModel.selecionarHorario(LocalTime.parse(horario.toString()))
                                             horarioExpanded = false
                                         } catch (e: Exception) {
                                             Log.e("AgendarDialog", "Erro ao selecionar horário", e)
