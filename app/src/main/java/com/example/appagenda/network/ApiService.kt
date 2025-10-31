@@ -2,54 +2,66 @@ package com.example.appagenda.network
 
 import com.example.appagenda.model.Agendamento
 import com.example.appagenda.model.AgendamentoData
+import com.example.appagenda.model.AgendamentoResponse
+import com.example.appagenda.model.AgendamentosResponse
+import com.example.appagenda.model.Horario
 import com.example.appagenda.model.LoginRequest
 import com.example.appagenda.model.LoginResponse
 import com.example.appagenda.model.Servico
+import com.example.appagenda.model.UserAppointmentsResponse
 import com.example.appagenda.model.Usuario
+import com.example.appagenda.model.UsuarioResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface ApiService {
         @POST("auth/login")
-        suspend fun login(
-                @Body loginRequest: LoginRequest
-        ): Response<LoginResponse>
+        suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
 
         @POST("auth/logout")
         suspend fun logout(): Response<Unit>
 
         @GET("users/me")
-        suspend fun getUserProfile(
-                @retrofit2.http.Header("Authorization") token: String
-        ): Response<Usuario>
+        suspend fun getUserProfile(): Response<UsuarioResponse>
 
-
+        // ✅ CORRIGIDO: Usa ServicesResponse
         @GET("services")
-        suspend fun getServices(): Response<List<Servico>>
+        suspend fun getServices(): Response<ServicesResponse>
 
-        //Buscar todos os agendamentos do usuário
+        // ✅ CORRIGIDO: Usa AgendamentosResponse
         @GET("appointments")
-        suspend fun getAgendamentos(): Response<List<Agendamento>>
+        suspend fun getAgendamentos(): Response<AgendamentosResponse>
 
-        // Buscar agendamento específico
+        // ✅ CORRIGIDO: Usa UserAppointmentsResponse
+        @GET("appointments/user/{userId}")
+        suspend fun getAgendamentosUsuario(@Path("userId") userId: Int): Response<UserAppointmentsResponse>
+
+        // ✅ CORRIGIDO: Usa AgendamentoResponse
         @GET("appointments/{id}")
-        suspend fun getAgendamento(@Path("id") id: Int): Response<Agendamento>
+        suspend fun getAgendamento(@Path("id") id: Int): Response<AgendamentoResponse>
 
-        // Criar novo agendamento
+        // ✅ CORRIGIDO: Usa AgendamentoResponse
         @POST("appointments")
-        suspend fun createAgendamento(
-                @Body agendamento: AgendamentoData
-        ): Response<Agendamento>
+        suspend fun createAgendamento(@Body agendamento: AgendamentoData): Response<AgendamentoResponse>
 
-        //Cancelar agendamento
+        // ✅ CORRIGIDO: Usa AgendamentoResponse
+        @PUT("appointments/{id}")
+        suspend fun updateAgendamento(
+                @Path("id") id: Int,
+                @Body agendamento: AgendamentoData
+        ): Response<AgendamentoResponse>
+
+        // Deletar agendamento
         @DELETE("appointments/{id}")
         suspend fun cancelarAgendamento(@Path("id") id: Int): Response<Unit>
-
 }
-data class UsuarioResponse(
-        val user: Usuario
+// Adicione estas classes de resposta
+
+data class ServicesResponse(
+        val services: List<Servico>
 )

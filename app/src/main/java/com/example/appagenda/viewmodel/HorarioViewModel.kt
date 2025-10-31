@@ -15,14 +15,14 @@ data class HorarioUiState(
 )
 
 class HorarioViewModel(
-    private val horarioRepository: HorarioRepository = HorarioRepository()
+    private val horarioRepository: HorarioRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HorarioUiState())
     val uiState: StateFlow<HorarioUiState> = _uiState.asStateFlow()
 
     /** Carrega horários disponíveis */
-    fun carregarHorarios() {
+    suspend fun carregarHorarios() {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
         try {
             val horarios = horarioRepository.getHorariosDisponiveis()

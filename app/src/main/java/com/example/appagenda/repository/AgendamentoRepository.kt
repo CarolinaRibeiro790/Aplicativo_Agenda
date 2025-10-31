@@ -10,14 +10,50 @@ class AgendamentoRepository {
     suspend fun getAgendamentos(): Result<List<Agendamento>> {
         return try {
             val response = apiService.getAgendamentos()
-
             if (response.isSuccessful) {
-                val agendamentos = response.body() ?: emptyList()
+                val agendamentos = response.body()?.appointments ?: emptyList()
                 Log.d("AgendamentoRepository", "Agendamentos carregados: ${agendamentos.size}")
                 Result.success(agendamentos)
             } else {
-                Log.e("AgendamentoRepository", "Erro: ${response.code()}")
+                Log.e("AgendamentoRepository", "Erro: ${response.code()} - ${response.errorBody()?.string()}")
                 Result.failure(Exception("Erro ao buscar agendamentos: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Log.e("AgendamentoRepository", "Exception: ${e.message}", e)
+            Result.failure(Exception("Erro ao conectar: ${e.message}"))
+        }
+    }
+
+    suspend fun getAgendamentosUsuario(userId: Int): Result<List<Agendamento>> {
+        return try {
+            val response = apiService.getAgendamentosUsuario(userId)
+            if (response.isSuccessful) {
+                val agendamentos = response.body()?.userAppointments ?: emptyList()
+                Log.d("AgendamentoRepository", "Agendamentos do usuário carregados: ${agendamentos.size}")
+                Result.success(agendamentos)
+            } else {
+                Result.failure(Exception("Erro: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Erro ao conectar: ${e.message}"))
+        }
+    }
+
+    suspend fun criarAgendamento(agendamento: AgendamentoData): Result<Agendamento> {
+        return try {
+            val response = apiService.createAgendamento(agendamento)
+            if (response.isSuccessful) {
+                val novoAgendamento = response.body()?.appointment
+                if (novoAgendamento != null) {
+                    Log.d("AgendamentoRepository", "Agendamento criado com sucesso: ${novoAgendamento.id}")
+                    Result.success(novoAgendamento)
+                } else {
+                    Result.failure(Exception("Resposta vazia do servidor"))
+                }
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Log.e("AgendamentoRepository", "Erro: ${response.code()} - $errorBody")
+                Result.failure(Exception("Erro: ${response.code()} - $errorBody"))
             }
         } catch (e: Exception) {
             Log.e("AgendamentoRepository", "Exception: ${e.message}", e)
@@ -28,9 +64,8 @@ class AgendamentoRepository {
     suspend fun getAgendamento(id: Int): Result<Agendamento> {
         return try {
             val response = apiService.getAgendamento(id)
-
             if (response.isSuccessful) {
-                val agendamento = response.body()
+                val agendamento = response.body()?.appointment
                 if (agendamento != null) {
                     Result.success(agendamento)
                 } else {
@@ -44,30 +79,9 @@ class AgendamentoRepository {
         }
     }
 
-    suspend fun criarAgendamento(agendamento: AgendamentoData): Result<Agendamento> {
-        return try {
-            val response = apiService.createAgendamento(agendamento)
-
-            if (response.isSuccessful) {
-                val novoAgendamento = response.body()
-                if (novoAgendamento != null) {
-                    Log.d("AgendamentoRepository", "Agendamento criado com sucesso: ${novoAgendamento.id}")
-                    Result.success(novoAgendamento)
-                } else {
-                    Result.failure(Exception("Resposta vazia do servidor"))
-                }
-            } else {
-                Result.failure(Exception("Erro: ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(Exception("Erro ao conectar: ${e.message}"))
-        }
-    }
-
     suspend fun cancelarAgendamento(id: Int): Result<Unit> {
         return try {
             val response = apiService.cancelarAgendamento(id)
-
             if (response.isSuccessful) {
                 Log.d("AgendamentoRepository", "Agendamento $id cancelado")
                 Result.success(Unit)

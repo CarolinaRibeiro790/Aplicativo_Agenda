@@ -1,5 +1,6 @@
 package com.example.appagenda.view
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.appagenda.cache.UserCache
 import com.example.appagenda.view.theme.BlueColor
 import com.example.appagenda.viewmodel.AgendamentoViewModel
 import kotlinx.datetime.LocalTime
@@ -128,12 +130,19 @@ fun AgendaView(
 
     // Dialog para agendamento
     if (uiState.mostrarDialog) {
+        val userId = recuperarUserIdDoSharedPreferences(context)
         AgendarDialog(
             viewModel = viewModel,
             uiState = uiState,
+            userId = userId,
             onDismiss = { viewModel.esconderDialog() }
         )
     }
+}
+
+fun recuperarUserIdDoSharedPreferences(context: Context): Int {
+    val sharedPref = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    return sharedPref.getInt("user_id", 0)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,16 +150,21 @@ fun AgendaView(
 fun AgendarDialog(
     viewModel: AgendamentoViewModel,
     uiState: com.example.appagenda.viewmodel.AgendamentoUiState,
+    userId: Int,
     onDismiss: () -> Unit
 ) {
     var servicoExpanded by remember { mutableStateOf(false) }
     var horarioExpanded by remember { mutableStateOf(false) }
 
+    Log.d("--- DEV", "AgendarDialog: USER ID: $userId")
+
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             Button(
-                onClick = { viewModel.confirmarAgendamento() },
+                onClick = {
+                    viewModel.confirmarAgendamento(userId)
+                },
                 enabled = uiState.servicoSelecionado != null &&
                         uiState.horarioSelecionado != null &&
                         !uiState.isLoading,

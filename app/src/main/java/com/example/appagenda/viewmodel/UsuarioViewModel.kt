@@ -1,3 +1,4 @@
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,7 +11,7 @@ import com.example.appagenda.network.ApiClient
 import com.example.appagenda.network.AuthTokenHolder
 import kotlinx.coroutines.launch
 
-class UsuarioViewModel: ViewModel() {
+class UsuarioViewModel(): ViewModel() {
 
     var usuario by mutableStateOf<Usuario?>(null)
         private set
@@ -21,11 +22,8 @@ class UsuarioViewModel: ViewModel() {
     var errorMessage by mutableStateOf("")
         private set
 
-    init {
-        carregarDados()
-    }
 
-    private fun carregarDados() {
+    fun carregarDados(context: Context) {
         //Carregar os dados da cache
         val usuarioCache = UserCache.obter()
 
@@ -35,10 +33,10 @@ class UsuarioViewModel: ViewModel() {
         }
 
         //Caso não tenha dados na cache, busca no servidor
-        atualizarPerfil()
+        atualizarPerfil(context)
     }
 
-    fun atualizarPerfil() {
+    fun atualizarPerfil(context: Context) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = ""
@@ -50,13 +48,13 @@ class UsuarioViewModel: ViewModel() {
                     errorMessage = "Token não disponível"
                     return@launch
                 }
-                val response = ApiClient.apiService.getUserProfile("Bearer $token")
+                val response = ApiClient.apiService.getUserProfile()
 
                 if(response.isSuccessful){
                     val usuarioServidor = response.body()
                     if(usuarioServidor != null){
-                        usuario = usuarioServidor
-                        UserCache.salvar(usuarioServidor, token)
+                        usuario = usuarioServidor.user
+                        UserCache.salvar(usuario!!, token, context)
                     }
                 }else{
                     errorMessage = "Erro ao carregar perfil"

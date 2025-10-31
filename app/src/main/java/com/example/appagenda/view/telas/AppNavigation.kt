@@ -1,5 +1,6 @@
 package com.example.appagenda.view.telas
 
+import UsuarioViewModel
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
@@ -18,6 +19,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -34,15 +37,16 @@ object Routes {
     const val NOTIFICACAO = "notificacao"
 }
 
-sealed class TabScreen(val route: String, val title: String, val icon: ImageVector){
-    object Home: TabScreen(Routes.HOME, "Home", Icons.Outlined.Home)
-    object Agenda: TabScreen(Routes.AGENDA, "Agenda", Icons.Outlined.DateRange)
-    object Perfil: TabScreen(Routes.PERFIL, "Perfil", Icons.Outlined.Person)
+sealed class TabScreen(val route: String, val title: String, val icon: ImageVector) {
+    object Home : TabScreen(Routes.HOME, "Home", Icons.Outlined.Home)
+    object Agenda : TabScreen(Routes.AGENDA, "Agenda", Icons.Outlined.DateRange)
+    object Perfil : TabScreen(Routes.PERFIL, "Perfil", Icons.Outlined.Person)
 }
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val context = LocalContext.current
 
     NavHost(navController = navController, startDestination = Routes.LOGIN) {
         composable(Routes.LOGIN) {
@@ -70,7 +74,10 @@ fun AppNavigation() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreenWithTabs(rootNavController: NavController) {
+fun MainScreenWithTabs(
+    rootNavController: NavController,
+    usuarioViewModel: UsuarioViewModel = viewModel()
+) {
     val tabsNavController = rememberNavController()
 
     val tabScreens = listOf(
@@ -87,12 +94,19 @@ fun MainScreenWithTabs(rootNavController: NavController) {
 
                 tabScreens.forEach { screen ->
                     NavigationBarItem(
-                        icon = { Icon(imageVector = screen.icon, contentDescription = screen.title) },
+                        icon = {
+                            Icon(
+                                imageVector = screen.icon,
+                                contentDescription = screen.title
+                            )
+                        },
                         label = { Text(screen.title) },
                         selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                         onClick = {
                             tabsNavController.navigate(screen.route) {
-                                popUpTo(tabsNavController.graph.findStartDestination().id) { saveState = true }
+                                popUpTo(tabsNavController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
                                 launchSingleTop = true
                                 restoreState = true
                             }
@@ -108,9 +122,12 @@ fun MainScreenWithTabs(rootNavController: NavController) {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Routes.HOME) {
-                HomeView(onNotificationsClick = { rootNavController.navigate(Routes.NOTIFICACAO) })
+                HomeView(
+                    onNotificationsClick = { rootNavController.navigate(Routes.NOTIFICACAO) },
+                    viewModel = usuarioViewModel
+                )
             }
-            composable(Routes.TAB_HOME) { HomeView() }
+            composable(Routes.TAB_HOME) { HomeView(viewModel = usuarioViewModel) }
             composable(Routes.AGENDA) { AgendaView() }
             composable(Routes.PERFIL) { PerfilView() }
         }

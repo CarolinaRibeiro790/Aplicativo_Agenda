@@ -1,20 +1,39 @@
 package com.example.appagenda.repository
-
+import android.util.Log
 import com.example.appagenda.model.Servico
+import com.example.appagenda.model.ServicesResponse
+import com.example.appagenda.network.ApiClient
 
 class ServicoRepository {
-    private val servicos = listOf(
-        Servico(1, "Acupuntura", 100.0, 30, 1, "Tratamento com agulhas finas"),
-        Servico(2, "Auriculoterapia", 100.0, 30, 2, "Terapia auricular"),
-        Servico(3, "Desbloqueio emocional", 100.0, 30, 3, "Liberação emocional"),
-        Servico(4, "Drenagem linfática", 100.0, 45, 4, "Massagem drenante"),
-        Servico(5, "Iridologia", 100.0, 30, 5, "Análise pela íris"),
-        Servico(6, "Massagem terapêutica", 100.0, 60, 6, "Massagem relaxante")
-    )
+    private val apiService = ApiClient.apiService
+    private val TAG = "ServicoRepository"
 
-    /** Retorna todos os serviços */
-    fun getServicos(): List<Servico> = servicos
+    /** Retorna todos os serviços do backend */
+    suspend fun getServicos(): List<Servico> {
+        return try {
+            val response = apiService.getServices()
+            if (response.isSuccessful) {
+                val servicesResponse = response.body()
+                servicesResponse?.services ?: emptyList()
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Log.e(TAG, "Erro ao carregar serviços: ${response.code()} - $errorBody")
+                emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception ao carregar serviços: ${e.message}", e)
+            emptyList()
+        }
+    }
 
     /** Busca um serviço por ID */
-    fun getServicoById(id: Int): Servico? = servicos.find { it.id == id }
+    suspend fun getServicoById(id: Int): Servico? {
+        return try {
+            val servicos = getServicos()
+            servicos.find { it.id == id }
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao buscar serviço por ID: ${e.message}")
+            null
+        }
+    }
 }

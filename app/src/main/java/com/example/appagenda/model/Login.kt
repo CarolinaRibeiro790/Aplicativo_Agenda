@@ -1,16 +1,20 @@
 package com.example.appagenda.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class LoginRequest(
-    @SerializedName("email") val email: String,
-    @SerializedName("password") val password: String
+    val email: String,
+    val password: String
 )
 
+@Serializable
 data class LoginResponse(
-    @SerializedName("authToken") val authToken: String?,
-    @SerializedName("safeUser") val safeUser: Usuario?
+    val authToken: String?,
+    val safeUser: Usuario?
 )
+
+@Serializable
 data class UsuarioResponse(
     val user: Usuario
 )

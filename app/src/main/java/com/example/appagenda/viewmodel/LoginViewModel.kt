@@ -1,5 +1,6 @@
 package com.example.appagenda.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appagenda.network.ApiClient
@@ -21,16 +22,18 @@ data class LoginUiState(
 )
 
 class LoginViewModel : ViewModel() {
-      private val _uiState = MutableStateFlow(LoginUiState())
+    private val _uiState = MutableStateFlow(LoginUiState())
     var uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    fun login(email: String, senha: String, onSuccess: (String) -> Unit = {}) {
+    fun login(email: String, senha: String, onSuccess: (String) -> Unit = {}, context: Context) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
                 val response = ApiClient.apiService.login(LoginRequest(email, senha))
+                Log.d("--- DEV", "login: LOGIN RESPONSE $response")
 
                 if (response.isSuccessful) {
+                    Log.d("--- DEV", "login: PURE BODY ${response.body()}")
                     val loginResponse = response.body()
                     if (loginResponse?.authToken != null && loginResponse.safeUser != null) {
                         val token = loginResponse.authToken
@@ -38,7 +41,8 @@ class LoginViewModel : ViewModel() {
 
                         AuthTokenHolder.token = loginResponse.authToken
                         //Salvar no cache
-                        UserCache.salvar(usuario, token)
+                        Log.d("--- DEV", "login: USER RESPONSE $usuario")
+                        UserCache.salvar(usuario, token, context)
 
                         _uiState.value = _uiState.value.copy(
                             isLoggedIn = true,
@@ -53,6 +57,7 @@ class LoginViewModel : ViewModel() {
                     _uiState.value = _uiState.value.copy(error = "Login falhou: ${response.code()}")
                 }
             } catch (e: Exception) {
+                Log.d("--- DEV", "login: LOGIN EXCEPTION $e")
                 _uiState.value = _uiState.value.copy(error = "Erro: ${e.message}")
             } finally {
                 _uiState.value = _uiState.value.copy(isLoading = false)

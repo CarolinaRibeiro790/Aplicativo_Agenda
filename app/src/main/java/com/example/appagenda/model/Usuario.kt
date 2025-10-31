@@ -1,4 +1,5 @@
 package com.example.appagenda.model
+
 import kotlinx.serialization.Serializable
 
 @Serializable

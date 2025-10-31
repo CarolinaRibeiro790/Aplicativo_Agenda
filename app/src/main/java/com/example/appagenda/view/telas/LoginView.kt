@@ -175,11 +175,13 @@ fun LoginScreen(
 
                 // Botão de Login
                 Button(
-                    onClick = { viewModel.login(email, senha) { token ->
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
-                    } },
+                    onClick = {
+                        viewModel.login(email, senha, context = context, onSuccess = { token ->
+                            navController.navigate(Routes.HOME) {
+                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            }
+                        })
+                    },
                     enabled = !uiState.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
