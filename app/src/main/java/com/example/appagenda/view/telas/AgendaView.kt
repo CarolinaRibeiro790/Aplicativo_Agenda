@@ -142,6 +142,7 @@ fun AgendaView(
 
 fun recuperarUserIdDoSharedPreferences(context: Context): Int {
     val sharedPref = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    Log.d(sharedPref.getInt("user_id", 0).toString(), "recuperarUserIdDoSharedPreferences: ")
     return sharedPref.getInt("user_id", 0)
 }
 
@@ -283,8 +284,11 @@ fun AgendarDialog(
                         val horariosJaAgendados = uiState.agendamentos
                             .filter { it.appointmentDate == uiState.dataSelecionada?.toString() }
                             .mapNotNull {
-                                try { java.time.LocalTime.parse(it.appointmentTime.toString()) }
-                                catch (e: Exception) { null }
+                                try {
+                                    java.time.LocalTime.parse(it.appointmentTime.toString())
+                                } catch (e: Exception) {
+                                    null
+                                }
                             }
 
                         // Filtra apenas horários disponíveis
@@ -341,8 +345,6 @@ fun AgendarDialog(
         }
     )
 }
-
-
 
 
 // COMPONENTES DO CALENDÁRIO

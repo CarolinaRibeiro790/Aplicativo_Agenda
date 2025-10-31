@@ -38,7 +38,7 @@ interface ApiService {
         suspend fun getAgendamentos(): Response<AgendamentosResponse>
 
         // ✅ CORRIGIDO: Usa UserAppointmentsResponse
-        @GET("appointments/user/{userId}")
+        @GET("appointments/{userId}")
         suspend fun getAgendamentosUsuario(@Path("userId") userId: Int): Response<UserAppointmentsResponse>
 
         // ✅ CORRIGIDO: Usa AgendamentoResponse
