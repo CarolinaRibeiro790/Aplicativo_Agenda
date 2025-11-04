@@ -24,7 +24,7 @@ class AgendamentoRepository {
         }
     }
 
-    suspend fun getAgendamentosUsuario(userId: Int): Result<List<Agendamento>> {
+    suspend fun getAgendamentos(userId: Int?): Result<List<Agendamento>> {
         return try {
             val response = apiService.getAgendamentosUsuario(userId)
             if (response.isSuccessful) {

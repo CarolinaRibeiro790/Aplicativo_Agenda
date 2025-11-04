@@ -3,6 +3,7 @@ package com.example.appagenda.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.appagenda.cache.UserCache
 import com.example.appagenda.model.Agendamento
 import com.example.appagenda.model.AgendamentoData
 import com.example.appagenda.model.Horario
@@ -25,11 +26,11 @@ data class AgendamentoUiState(
     val agendamentos: List<Agendamento> = emptyList(),
     val agendamentoSelecionado: Agendamento? = null,
     val horarios: List<Horario> = emptyList(),
+    var userId: Int? = null,
     val servicoSelecionado: Servico? = null,
     val horarioSelecionado: LocalTime? = null,
     val dataSelecionada: LocalDate? = null,
     val mesAtual: YearMonth = YearMonth.from(LocalDate.now()),
-    //val dataSelecionada: LocalDate = LocalDate.now(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val sucessoMensagem: String? = null,
@@ -48,6 +49,7 @@ class AgendamentoViewModel(
     private val _uiState = MutableStateFlow(AgendamentoUiState())
     val uiState: StateFlow<AgendamentoUiState> = _uiState.asStateFlow()
 
+
     init {
         Log.d(TAG, "ViewModel inicializado -> carregando dados iniciais...")
         carregarDados()
@@ -59,18 +61,20 @@ class AgendamentoViewModel(
         _uiState.value = _uiState.value.copy(isLoading = true)
         try {
             val servicos = servicoRepository.getServicos()
-            Log.d(TAG, "Serviços carregados: ${servicos?.size ?: 0}")
+            Log.d(TAG, "Serviços carregados: ${servicos.size}")
 
             val horarios = horarioRepository.getHorarios()
-            Log.d(TAG, "Horários carregados: ${horarios?.size ?: 0}")
+            Log.d(TAG, "Horários carregados: ${horarios.size}")
 
-            val agendamentos = agendamentoRepository.getAgendamentos().getOrNull() ?: emptyList()
-            Log.d(TAG, "Agendamentos carregados: ${agendamentos.size}")
+            val usuario = UserCache.obter()
+            val agendamentos = agendamentoRepository.getAgendamentos(usuario?.id).getOrNull() ?: emptyList()
+
+            Log.d(TAG, "Agendamentos carregados: $agendamentos")
 
             _uiState.value = _uiState.value.copy(
                 servicos = servicos,
                 horarios = horarios,
-                agendamentos = agendamentos.filter { it.status == 1 },
+                agendamentos = agendamentos,
                 isLoading = false
             )
             Log.d(TAG, "Carregamento concluído com sucesso!")
@@ -82,8 +86,6 @@ class AgendamentoViewModel(
             )
         }
     }
-
-
 
     /** Recarrega apenas os agendamentos */
     fun recarregarAgendamentos() = viewModelScope.launch {
@@ -191,7 +193,7 @@ class AgendamentoViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            val horarioStr = _uiState.value.horarioSelecionado?.toString()?.substring(0,5) ?: ""
+            val horarioStr = _uiState.value.horarioSelecionado?.toString()?.substring(0, 5) ?: ""
             val scheduleId = horarioRepository.obterScheduleId(
                 _uiState.value.horarioSelecionado?.toString()
             )

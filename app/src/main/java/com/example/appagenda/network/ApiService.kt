@@ -1,15 +1,12 @@
 package com.example.appagenda.network
 
-import com.example.appagenda.model.Agendamento
 import com.example.appagenda.model.AgendamentoData
 import com.example.appagenda.model.AgendamentoResponse
 import com.example.appagenda.model.AgendamentosResponse
-import com.example.appagenda.model.Horario
 import com.example.appagenda.model.LoginRequest
 import com.example.appagenda.model.LoginResponse
 import com.example.appagenda.model.Servico
 import com.example.appagenda.model.UserAppointmentsResponse
-import com.example.appagenda.model.Usuario
 import com.example.appagenda.model.UsuarioResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -39,7 +36,7 @@ interface ApiService {
 
         // ✅ CORRIGIDO: Usa UserAppointmentsResponse
         @GET("appointments/{userId}")
-        suspend fun getAgendamentosUsuario(@Path("userId") userId: Int): Response<UserAppointmentsResponse>
+        suspend fun getAgendamentosUsuario(@Path("userId") userId: Int?): Response<UserAppointmentsResponse>
 
         // ✅ CORRIGIDO: Usa AgendamentoResponse
         @GET("appointments/{id}")

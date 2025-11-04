@@ -1,8 +1,10 @@
+import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appagenda.cache.UserCache
@@ -11,7 +13,7 @@ import com.example.appagenda.network.ApiClient
 import com.example.appagenda.network.AuthTokenHolder
 import kotlinx.coroutines.launch
 
-class UsuarioViewModel(): ViewModel() {
+class UsuarioViewModel(application: Application) : AndroidViewModel(application) {
 
     var usuario by mutableStateOf<Usuario?>(null)
         private set
@@ -22,8 +24,11 @@ class UsuarioViewModel(): ViewModel() {
     var errorMessage by mutableStateOf("")
         private set
 
+    init {
+        carregarDados()
+    }
 
-    fun carregarDados(context: Context) {
+    fun carregarDados() {
         //Carregar os dados da cache
         val usuarioCache = UserCache.obter()
 
@@ -33,7 +38,7 @@ class UsuarioViewModel(): ViewModel() {
         }
 
         //Caso não tenha dados na cache, busca no servidor
-        atualizarPerfil(context)
+        atualizarPerfil(getApplication<Application>().applicationContext)
     }
 
     fun atualizarPerfil(context: Context) {
@@ -44,36 +49,36 @@ class UsuarioViewModel(): ViewModel() {
             try {
                 val token = AuthTokenHolder.token
 
-                if(token == null){
+                if (token == null) {
                     errorMessage = "Token não disponível"
                     return@launch
                 }
                 val response = ApiClient.apiService.getUserProfile()
 
-                if(response.isSuccessful){
+                if (response.isSuccessful) {
                     val usuarioServidor = response.body()
-                    if(usuarioServidor != null){
+                    if (usuarioServidor != null) {
                         usuario = usuarioServidor.user
                         UserCache.salvar(usuario!!, token, context)
                     }
-                }else{
+                } else {
                     errorMessage = "Erro ao carregar perfil"
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 errorMessage = "Erro: ${e.message}"
-            }finally {
+            } finally {
                 isLoading = false
             }
         }
     }
 
-    fun logout(){
+    fun logout() {
         viewModelScope.launch {
-            try{
+            try {
                 ApiClient.apiService.logout()
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.e("UsuarioViewModel", "Erro ao fazer logout: ${e.message}")
-            }finally {
+            } finally {
                 UserCache.limpar()
                 AuthTokenHolder.token = null
                 usuario = null
