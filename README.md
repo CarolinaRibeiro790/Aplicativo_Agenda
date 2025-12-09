@@ -3,7 +3,7 @@
   <img src="https://github.com/user-attachments/assets/0a2ef80d-eaa0-4aea-9284-df75e47bfc99" width="35" />
  Aplicativo HealthConnect
 </h1>
-O projeto HealthConnect está sendo desenvolvido para uma clínica de terapias integrativas.
+O projeto HealthConnect está sendo desenvolvido para um trabalho da faculdade com parceria a uma clínica de terapias integrativas.
 
 Nosso objetivo é criar um ecossistema digital que conecta profissionais e pacientes de forma eficiente e moderna.
 
